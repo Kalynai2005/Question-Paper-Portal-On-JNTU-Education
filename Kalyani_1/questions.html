@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Questions</title>
+<link rel="stylesheet" href="style.css">
+<style>
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background-color: #f5f7fa;
+}
+
+.header {
+    background: linear-gradient(to right, #3498db, #2980b9);
+    color: white;
+    text-align: center;
+    padding: 40px;
+}
+
+.content {
+    padding: 40px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.question-card {
+    background: white;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.question-title {
+    font-size: 1.2em;
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+.question-body {
+    color: #555;
+    line-height: 1.6;
+}
+
+.loading {
+    text-align: center;
+    font-size: 1.2em;
+    color: #7f8c8d;
+}
+
+.back-btn {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: #3498db;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+}
+
+.back-btn:hover {
+    background-color: #2980b9;
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div class="header">
+    <h1 id="page-title">Loading...</h1>
+    <p id="page-subtitle">Questions</p>
+</div>
+
+<div class="content" id="questions-container">
+    <p class="loading" id="loading-text">Fetching questions...</p>
+</div>
+
+<div style="text-align: center; padding-bottom: 40px;">
+    <a href="#" id="back-link" class="back-btn">⬅ Back</a>
+</div>
+
+<script>
+    // Initialize Supabase
+    const SUPABASE_URL = 'https://mmrodjsknmppzmqjrrgu.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tcm9kanNrbm1wcHptcWpycmd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NDAyNTQsImV4cCI6MjA5MjUxNjI1NH0.OyZd4tbbk26FYJ7HR_no-0-NlVVsuO-1HrywZtTUviQ';
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Get parameters from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const category = urlParams.get('category');
+    const topic = urlParams.get('topic');
+
+    // Update page UI
+    const pageTitle = document.getElementById('page-title');
+    const backLink = document.getElementById('back-link');
+    
+    if (category === 'lab') {
+        pageTitle.textContent = topic + ' Lab Programs';
+        backLink.href = 'lab programs.html';
+    } else if (category === 'placement') {
+        pageTitle.textContent = topic + ' Questions';
+        backLink.href = 'placement.html';
+    } else {
+        pageTitle.textContent = 'Questions';
+        backLink.href = 'index.html';
+    }
+
+    // Fetch from Supabase
+    async function loadQuestions() {
+        const container = document.getElementById('questions-container');
+        const loadingText = document.getElementById('loading-text');
+
+        try {
+            const { data, error } = await supabaseClient
+                .from('practice_questions')
+                .select('*')
+                .eq('category', category)
+                .eq('topic', topic)
+                .order('created_at', { ascending: true });
+
+            if (error) throw error;
+
+            loadingText.style.display = 'none';
+
+            if (!data || data.length === 0) {
+                container.innerHTML = '<p class="loading">No questions found for this topic yet.</p>';
+                return;
+            }
+
+            data.forEach((q, index) => {
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                
+                const title = document.createElement('div');
+                title.className = 'question-title';
+                title.textContent = `Q${index + 1}: ${q.title || 'Question'}`;
+                
+                const body = document.createElement('div');
+                body.className = 'question-body';
+                body.innerHTML = q.content ? q.content.replace(/\n/g, '<br>') : 'No content available.';
+
+                card.appendChild(title);
+                card.appendChild(body);
+                container.appendChild(card);
+            });
+        } catch (error) {
+            console.error('Error fetching questions:', error);
+            loadingText.textContent = 'Failed to load questions. Please check console.';
+            loadingText.style.color = 'red';
+        }
+    }
+
+    if (category && topic) {
+        loadQuestions();
+    } else {
+        document.getElementById('loading-text').textContent = 'Invalid category or topic specified.';
+    }
+</script>
+
+</body>
+</html>

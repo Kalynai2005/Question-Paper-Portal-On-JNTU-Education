@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Sign Up</title>
+<link rel="stylesheet" href="style.css">
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f5f7fa;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+.auth-container {
+    background-color: white;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    width: 300px;
+    text-align: center;
+}
+.auth-container h2 {
+    color: #27ae60;
+    margin-bottom: 20px;
+}
+.form-group {
+    margin-bottom: 15px;
+    text-align: left;
+}
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #333;
+}
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+.btn-auth {
+    width: 100%;
+    padding: 10px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    margin-top: 10px;
+}
+.btn-auth:hover {
+    background-color: #2980b9;
+}
+.link-auth {
+    display: block;
+    margin-top: 15px;
+    color: #3498db;
+    text-decoration: none;
+    font-size: 14px;
+}
+.message {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #e74c3c;
+}
+.success {
+    color: #2ecc71;
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div class="auth-container">
+    <h2>Sign Up</h2>
+    <form id="signupForm">
+        <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" id="name" required>
+        </div>
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" required minlength="6">
+        </div>
+        <div class="form-group">
+            <label for="confirmPassword">Confirm Password</label>
+            <input type="password" id="confirmPassword" required minlength="6">
+        </div>
+        <button type="submit" class="btn-auth">Sign Up</button>
+    </form>
+    <div id="message" class="message"></div>
+    <a href="login.html" class="link-auth">Already have an account? Login</a>
+</div>
+
+<script>
+    const SUPABASE_URL = 'https://mmrodjsknmppzmqjrrgu.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tcm9kanNrbm1wcHptcWpycmd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NDAyNTQsImV4cCI6MjA5MjUxNjI1NH0.OyZd4tbbk26FYJ7HR_no-0-NlVVsuO-1HrywZtTUviQ';
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    document.getElementById('signupForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        const messageEl = document.getElementById('message');
+
+        if (password !== confirmPassword) {
+            messageEl.innerText = "Passwords do not match!";
+            messageEl.className = "message";
+            return;
+        }
+
+        messageEl.innerText = "Signing up...";
+        messageEl.className = "message";
+
+        const { data, error } = await supabaseClient.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+                data: {
+                    full_name: name
+                }
+            }
+        });
+
+        if (error) {
+            messageEl.innerText = error.message;
+        } else {
+            messageEl.innerText = "Success! Please check your email to confirm your account.";
+            messageEl.className = "message success";
+            document.getElementById('signupForm').reset();
+        }
+    });
+</script>
+</body>
+</html>

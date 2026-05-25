@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Placement Preparation</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header>
+<h1>Placement Preparation Portion</h1>
+</header>
+
+<section>
+<h1 style="text-align:center;">Placement Preparation Material</h1>
+
+<div style="text-align:center; padding: 20px;" id="loading-text">Loading subjects...</div>
+<table align="center" cellpadding="10" id="placement-table">
+    <!-- Dynamic buttons will be injected here -->
+</table>
+
+<div style="text-align: center; margin-top: 20px;">
+    <button onclick="location.href='Home.html'" class="btn" style="background-color: #e74c3c;">Back to Home</button>
+</div>
+
+</section>
+
+<!-- Supabase CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    // Initialize Supabase
+    const SUPABASE_URL = 'https://mmrodjsknmppzmqjrrgu.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tcm9kanNrbm1wcHptcWpycmd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NDAyNTQsImV4cCI6MjA5MjUxNjI1NH0.OyZd4tbbk26FYJ7HR_no-0-NlVVsuO-1HrywZtTUviQ';
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    async function loadPlacementSubjects() {
+        const table = document.getElementById('placement-table');
+        const loadingText = document.getElementById('loading-text');
+
+        try {
+            // Fetch all placement questions
+            const { data, error } = await supabaseClient
+                .from('practice_questions')
+                .select('topic')
+                .eq('category', 'placement');
+
+            if (error) throw error;
+
+            // Extract unique topics
+            const uniqueTopics = [...new Set(data.map(item => item.topic))];
+
+            loadingText.style.display = 'none';
+
+            if (uniqueTopics.length === 0) {
+                loadingText.style.display = 'block';
+                loadingText.textContent = 'No placement materials found in database yet.';
+                return;
+            }
+
+            let currentRow = null;
+            
+            // Build the table with 3 buttons per row
+            uniqueTopics.forEach((topic, index) => {
+                if (index % 3 === 0) {
+                    currentRow = document.createElement('tr');
+                    table.appendChild(currentRow);
+                }
+
+                const td = document.createElement('td');
+                const btn = document.createElement('button');
+                btn.className = 'btn';
+                btn.textContent = topic + ' Questions';
+                btn.onclick = () => location.href = `questions.html?category=placement&topic=${encodeURIComponent(topic)}`;
+                
+                td.appendChild(btn);
+                currentRow.appendChild(td);
+            });
+
+        } catch (err) {
+            console.error('Error fetching subjects:', err);
+            loadingText.textContent = 'Failed to load subjects. Please check console.';
+            loadingText.style.color = 'red';
+        }
+    }
+
+    // Call the function on load
+    loadPlacementSubjects();
+</script>
+
+</body>
+</html>

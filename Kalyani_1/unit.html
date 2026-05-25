@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Unit Topics</title>
+<link rel="stylesheet" href="style.css">
+<style>
+body {
+    font-family: Arial;
+    margin: 0;
+    background-color: #f5f7fa;
+}
+
+/* Header */
+.header {
+    background: linear-gradient(to right, #2ecc71, #27ae60);
+    color: white;
+    text-align: center;
+    padding: 40px;
+}
+
+/* Content */
+.content {
+    padding: 40px;
+}
+
+/* Table Style */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+}
+
+th, td {
+    padding: 12px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+th {
+    background-color: #3498db;
+    color: white;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+tr:hover {
+    background-color: #e6f2ff;
+}
+
+/* Links */
+a {
+    text-decoration: none;
+    color: #3498db;
+    font-weight: bold;
+}
+
+a:hover {
+    color: #2c3e50;
+}
+
+/* Back Button */
+.back {
+    display: inline-block;
+    margin-top: 30px;
+    padding: 10px 20px;
+    background-color: #3498db;
+    color: white;
+    border-radius: 5px;
+    text-decoration: none;
+}
+</style>
+<!-- Supabase CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div class="header">
+    <h1 id="unit-title">Loading Topics...</h1>
+    <p>Select a topic to view questions</p>
+</div>
+
+<div class="content">
+
+<table id="topics-table">
+<tr>
+    <th>S.No</th>
+    <th>Topic Name</th>
+</tr>
+<!-- Topics will be injected here -->
+</table>
+
+<a href="index.html" class="back" id="back-button">⬅ Back to Units</a>
+
+</div>
+
+<script>
+    // Initialize Supabase
+    const SUPABASE_URL = 'https://mmrodjsknmppzmqjrrgu.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tcm9kanNrbm1wcHptcWpycmd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NDAyNTQsImV4cCI6MjA5MjUxNjI1NH0.OyZd4tbbk26FYJ7HR_no-0-NlVVsuO-1HrywZtTUviQ';
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Get unit ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const unitId = urlParams.get('unit_id');
+
+    async function loadTopics() {
+        if (!unitId) {
+            document.getElementById('unit-title').innerText = "Unit not found";
+            return;
+        }
+
+        // Fetch unit details
+        const { data: unitData, error: unitError } = await supabaseClient
+            .from('units')
+            .select('unit_number, title, subject_id')
+            .eq('id', unitId)
+            .single();
+
+        if (unitData) {
+            document.getElementById('unit-title').innerText = `💻 Unit ${unitData.unit_number} Topics - ${unitData.title || ''}`;
+            document.getElementById('back-button').href = `subject.html?id=${unitData.subject_id}`;
+        }
+
+        // Fetch topics for this unit
+        const { data: topicsData, error: topicsError } = await supabaseClient
+            .from('topics')
+            .select('*')
+            .eq('unit_id', unitId)
+            .order('topic_number', { ascending: true });
+
+        const table = document.getElementById('topics-table');
+        
+        if (topicsData && topicsData.length > 0) {
+            topicsData.forEach((topic, index) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td><a href="topic.html?topic_id=${topic.id}">${topic.title}</a></td>
+                `;
+                table.appendChild(tr);
+            });
+        } else {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td colspan="2">No topics found or please configure Supabase credentials.</td>`;
+            table.appendChild(tr);
+        }
+    }
+
+    loadTopics();
+</script>
+</body>
+</html>

@@ -60,3 +60,6 @@ Unit
 Topic
    ↓
 Questions
+
+### 🔍 Search Feature
+Users can search questions based on subject, unit, topic, or keyword.
